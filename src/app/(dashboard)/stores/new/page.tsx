@@ -64,8 +64,8 @@ export default function NewStorePage() {
         router.push(`/stores/${res.data.ulid}`);
       }, 1000);
 
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.message || 'Failed to create store.' });
+    } catch (err: unknown) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to create store.' });
       setIsSaving(false);
     }
   };
@@ -130,7 +130,7 @@ export default function NewStorePage() {
                 required
               >
                 <option value="">Select a type</option>
-                {storeTypes?.map((type: any) => (
+                {storeTypes?.map((type: { ulid: string; name: string }) => (
                   <option key={type.ulid} value={type.ulid}>
                     {type.name}
                   </option>

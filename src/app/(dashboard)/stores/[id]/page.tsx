@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Save, Loader2, Store, Globe, ShoppingBag, Truck } from "lucide-react";
+import { useParams } from "next/navigation";
+import { ArrowLeft, Save, Loader2, Store, Globe, Truck } from "lucide-react";
 import Link from "next/link";
 import useSWR from "swr";
 import { fetchApi } from "@/lib/api";
@@ -12,7 +12,6 @@ const fetchSettings = (url: string) => fetchApi(url).then(res => res.data);
 
 export default function StoreEditPage() {
   const params = useParams();
-  const router = useRouter();
   const storeId = params.id as string;
 
   const { data: store, error: storeError, isLoading: loadingStore } = useSWR(`/stores/${storeId}`, fetchStore);
@@ -106,8 +105,8 @@ export default function StoreEditPage() {
       });
 
       setMessage({ type: 'success', text: 'Store updated successfully.' });
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.message || 'Failed to update store.' });
+    } catch (err: unknown) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to update store.' });
     } finally {
       setIsSaving(false);
     }
