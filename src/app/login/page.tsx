@@ -10,6 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showForceLogin, setShowForceLogin] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +21,7 @@ export default function LoginPage() {
       // POST /auth/login is the endpoint defined in DashboardAuthController
       const response = await fetchApi("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, force: showForceLogin }),
       });
 
       if (response.data && response.data.token) {
@@ -31,7 +32,14 @@ export default function LoginPage() {
         setError("Invalid response from server.");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to log in.");
+      const errorMessage = err instanceof Error ? err.message : "Failed to log in.";
+      
+      if (errorMessage.includes("Sessão ativa")) {
+        setError("Active session detected. You might have left a session open or cleared your browser data. Force sign in to end the previous session.");
+        setShowForceLogin(true);
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -88,10 +96,12 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-primary text-primary-foreground font-medium py-3 rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className={`w-full font-medium py-3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${showForceLogin ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}
           >
             {isLoading ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : showForceLogin ? (
+              "Force Sign In (End previous session)"
             ) : (
               "Sign In"
             )}
