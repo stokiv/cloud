@@ -1,20 +1,138 @@
 "use client";
 
-import { User, Lock, Smartphone, ShieldCheck, Loader2, Save } from "lucide-react";
+import { User, Lock, Smartphone, ShieldCheck, Loader2, Save, CheckCircle2, AlertCircle } from "lucide-react";
 import useSWR from "swr";
 import { fetchApi } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const fetcher = (url: string) => fetchApi(url).then((res) => res.data);
 
 export default function SettingsPage() {
   const { user } = useAuth();
-  const { data: tenantSettings, isLoading } = useSWR("/tenant/settings", fetcher);
+  const { data: tenantSettings, isLoading, mutate } = useSWR("/tenant/settings", fetcher);
   const [activeTab, setActiveTab] = useState("personal");
 
+  // Loading & Toast State
+  const [isSaving, setIsSaving] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  const showToast = (message: string, type: "success" | "error") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  // Personal Info State
+  const [defaultCurrency, setDefaultCurrency] = useState("");
+  const [commissionRate, setCommissionRate] = useState("");
+
+  // Security State
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+
+  // Connected Apps State
+  const [mpAccessToken, setMpAccessToken] = useState("");
+  const [mpPublicKey, setMpPublicKey] = useState("");
+  const [efiClientId, setEfiClientId] = useState("");
+  const [efiClientSecret, setEfiClientSecret] = useState("");
+  const [efiPixKey, setEfiPixKey] = useState("");
+
+  // Populate state when settings load
+  useEffect(() => {
+    if (tenantSettings) {
+      setDefaultCurrency(tenantSettings.default_currency || "BRL");
+      setCommissionRate(tenantSettings.commission_rate?.toString() || "0");
+    }
+  }, [tenantSettings]);
+
+  const handleSavePersonalInfo = async () => {
+    setIsSaving(true);
+    try {
+      await fetchApi("/tenant/settings", {
+        method: "PUT",
+        body: JSON.stringify({
+          default_currency: defaultCurrency,
+          commission_rate: parseFloat(commissionRate)
+        }),
+      });
+      await mutate();
+      showToast("Personal info saved successfully.", "success");
+    } catch (e: unknown) {
+      const error = e as Error;
+      showToast(error.message || "Failed to save personal info.", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    setIsSaving(true);
+    try {
+      await fetchApi("/auth/change-password", {
+        method: "POST",
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword
+        }),
+      });
+      setCurrentPassword("");
+      setNewPassword("");
+      showToast("Password updated successfully.", "success");
+    } catch (e: unknown) {
+      const error = e as Error;
+      showToast(error.message || "Failed to update password.", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveIntegrations = async () => {
+    setIsSaving(true);
+    
+    // Only send fields that have been typed into (to avoid overwriting with empty strings if they just didn't want to change it)
+    // The backend handles '******' masks and ignores them.
+    const body: Record<string, string> = {};
+    if (mpAccessToken) body.mp_access_token = mpAccessToken;
+    if (mpPublicKey) body.mp_public_key = mpPublicKey;
+    if (efiClientId) body.efi_client_id = efiClientId;
+    if (efiClientSecret) body.efi_client_secret = efiClientSecret;
+    if (efiPixKey) body.efi_pix_key = efiPixKey;
+
+    try {
+      await fetchApi("/tenant/settings", {
+        method: "PUT",
+        body: JSON.stringify(body),
+      });
+      await mutate();
+      showToast("Integrations saved successfully.", "success");
+      
+      // Clear sensitive inputs after save
+      setMpAccessToken("");
+      setMpPublicKey("");
+      setEfiClientId("");
+      setEfiClientSecret("");
+      setEfiPixKey("");
+    } catch (e: unknown) {
+      const error = e as Error;
+      showToast(error.message || "Failed to save integrations.", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
+    <div className="space-y-8 max-w-5xl mx-auto relative">
+      
+      {/* TOAST NOTIFICATION */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-sm font-medium animate-in fade-in slide-in-from-top-2 ${
+          toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+        }`}>
+          {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+          {toast.message}
+        </div>
+      )}
+
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Account Settings</h1>
         <p className="mt-2 text-muted-foreground">Manage your personal information and security preferences.</p>
@@ -106,7 +224,8 @@ export default function SettingsPage() {
                         <label className="block text-sm font-medium text-muted-foreground mb-1">Default Currency</label>
                         <input 
                           type="text" 
-                          defaultValue={tenantSettings?.default_currency || "BRL"}
+                          value={defaultCurrency}
+                          onChange={(e) => setDefaultCurrency(e.target.value)}
                           className="w-full bg-background border border-card-border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors text-foreground"
                         />
                       </div>
@@ -114,7 +233,8 @@ export default function SettingsPage() {
                         <label className="block text-sm font-medium text-muted-foreground mb-1">Base Commission Rate (%)</label>
                         <input 
                           type="number" 
-                          defaultValue={tenantSettings?.commission_rate || "0"}
+                          value={commissionRate}
+                          onChange={(e) => setCommissionRate(e.target.value)}
                           className="w-full bg-background border border-card-border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors text-foreground"
                         />
                       </div>
@@ -122,10 +242,12 @@ export default function SettingsPage() {
                   </div>
                   <div className="mt-6 flex justify-end">
                     <button 
+                      onClick={handleSavePersonalInfo}
                       className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
-                      disabled={isLoading}
+                      disabled={isSaving}
                     >
-                      <Save className="w-4 h-4" /> Save Changes
+                      {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} 
+                      Save Changes
                     </button>
                   </div>
                 </div>
@@ -156,7 +278,9 @@ export default function SettingsPage() {
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-1">Current Password</label>
                     <input 
-                      type="password" 
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
                       className="w-full bg-background border border-card-border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors text-foreground"
                     />
                   </div>
@@ -164,11 +288,18 @@ export default function SettingsPage() {
                     <label className="block text-sm font-medium text-muted-foreground mb-1">New Password</label>
                     <input 
                       type="password" 
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
                       className="w-full bg-background border border-card-border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors text-foreground"
                     />
                   </div>
-                  <button className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center gap-2 mt-4">
-                    <Save className="w-4 h-4" /> Update Password
+                  <button 
+                    onClick={handleUpdatePassword}
+                    disabled={isSaving || !currentPassword || newPassword.length < 8}
+                    className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2 mt-4"
+                  >
+                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} 
+                    Update Password
                   </button>
                 </div>
               </div>
@@ -195,7 +326,10 @@ export default function SettingsPage() {
                       </div>
                       <div>
                         <h3 className="font-medium text-foreground">Mercado Pago</h3>
-                        <p className="text-xs text-muted-foreground">Payment Gateway</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className={`w-2 h-2 rounded-full ${tenantSettings?.has_mp_credentials ? 'bg-green-500' : 'bg-red-500'}`} />
+                          <p className="text-xs text-muted-foreground">{tenantSettings?.has_mp_credentials ? 'Connected' : 'Not Connected'}</p>
+                        </div>
                       </div>
                     </div>
                     <div className="space-y-3">
@@ -203,7 +337,9 @@ export default function SettingsPage() {
                         <label className="block text-xs font-medium text-muted-foreground mb-1">Access Token</label>
                         <input 
                           type="password"
-                          placeholder="APP_USR-..."
+                          value={mpAccessToken}
+                          onChange={(e) => setMpAccessToken(e.target.value)}
+                          placeholder={tenantSettings?.has_mp_credentials ? "••••••••••••••••••••••••••••••••" : "APP_USR-..."}
                           className="w-full bg-background border border-card-border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-primary text-foreground"
                         />
                       </div>
@@ -211,7 +347,9 @@ export default function SettingsPage() {
                         <label className="block text-xs font-medium text-muted-foreground mb-1">Public Key</label>
                         <input 
                           type="text"
-                          placeholder="APP_USR-..."
+                          value={mpPublicKey}
+                          onChange={(e) => setMpPublicKey(e.target.value)}
+                          placeholder={tenantSettings?.has_mp_credentials ? "••••••••••••••••" : "APP_USR-..."}
                           className="w-full bg-background border border-card-border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-primary text-foreground"
                         />
                       </div>
@@ -225,7 +363,10 @@ export default function SettingsPage() {
                       </div>
                       <div>
                         <h3 className="font-medium text-foreground">EFI (Gerencianet)</h3>
-                        <p className="text-xs text-muted-foreground">Pix & Boleto</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className={`w-2 h-2 rounded-full ${tenantSettings?.has_efi_credentials ? 'bg-green-500' : 'bg-red-500'}`} />
+                          <p className="text-xs text-muted-foreground">{tenantSettings?.has_efi_credentials ? 'Connected' : 'Not Connected'}</p>
+                        </div>
                       </div>
                     </div>
                     <div className="space-y-3">
@@ -233,7 +374,9 @@ export default function SettingsPage() {
                         <label className="block text-xs font-medium text-muted-foreground mb-1">Client ID</label>
                         <input 
                           type="text"
-                          placeholder="Client ID..."
+                          value={efiClientId}
+                          onChange={(e) => setEfiClientId(e.target.value)}
+                          placeholder={tenantSettings?.has_efi_credentials ? "••••••••••••••••" : "Client ID..."}
                           className="w-full bg-background border border-card-border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-primary text-foreground"
                         />
                       </div>
@@ -241,7 +384,9 @@ export default function SettingsPage() {
                         <label className="block text-xs font-medium text-muted-foreground mb-1">Client Secret</label>
                         <input 
                           type="password"
-                          placeholder="Client Secret..."
+                          value={efiClientSecret}
+                          onChange={(e) => setEfiClientSecret(e.target.value)}
+                          placeholder={tenantSettings?.has_efi_credentials ? "••••••••••••••••••••••••••••••••" : "Client Secret..."}
                           className="w-full bg-background border border-card-border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-primary text-foreground"
                         />
                       </div>
@@ -249,7 +394,9 @@ export default function SettingsPage() {
                         <label className="block text-xs font-medium text-muted-foreground mb-1">Pix Key</label>
                         <input 
                           type="text"
-                          placeholder="CNPJ, CPF, Email, ou Chave Aleatória"
+                          value={efiPixKey}
+                          onChange={(e) => setEfiPixKey(e.target.value)}
+                          placeholder={tenantSettings?.efi_pix_key ? "••••••••••••" : "CNPJ, CPF, Email, ou Chave Aleatória"}
                           className="w-full bg-background border border-card-border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-primary text-foreground"
                         />
                       </div>
@@ -257,8 +404,13 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="flex justify-end pt-4 border-t border-card-border">
-                    <button className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center gap-2">
-                      <Save className="w-4 h-4" /> Save Integrations
+                    <button 
+                      onClick={handleSaveIntegrations}
+                      disabled={isSaving}
+                      className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} 
+                      Save Integrations
                     </button>
                   </div>
 
