@@ -1,6 +1,7 @@
 "use client";
 
-import { Bell, Menu, Search } from "lucide-react";
+import { Menu, Search } from "lucide-react";
+import NotificationsDropdown from "./NotificationsDropdown";
 
 export default function Header() {
   return (
@@ -31,10 +32,7 @@ export default function Header() {
           />
         </form>
         <div className="flex items-center gap-x-4 lg:gap-x-6">
-          <button type="button" className="-m-2.5 p-2.5 text-muted-foreground hover:text-foreground transition-colors">
-            <span className="sr-only">View notifications</span>
-            <Bell className="h-6 w-6" aria-hidden="true" />
-          </button>
+          <NotificationsDropdown />
         </div>
       </div>
     </div>
