@@ -1,6 +1,6 @@
 "use client";
 
-import { Store, Globe, ShoppingBag, ExternalLink, Settings, MoreVertical, Loader2 } from "lucide-react";
+import { Store, Globe, ShoppingBag, Settings, MoreVertical, Loader2 } from "lucide-react";
 import useSWR from "swr";
 import { fetchApi } from "@/lib/api";
 

@@ -20,7 +20,7 @@ export default function DashboardPage() {
   const totalStores = stats?.total_stores || 0;
   const activeStores = stats?.active_stores || 0;
   
-  const activeDevices = devices.filter((d: any) => 
+  const activeDevices = devices.filter((d: { status: string; last_sync_at?: string }) => 
     d.status === 'ACTIVE' && d.last_sync_at && 
     (new Date().getTime() - new Date(d.last_sync_at).getTime() < 1000 * 60 * 60 * 24) // Active in last 24h
   ).length;
@@ -134,7 +134,7 @@ export default function DashboardPage() {
                 <p className="text-xs text-muted-foreground mt-1">Just now</p>
               </div>
             </div>
-            {devices.slice(0, 1).map((device: any) => (
+            {devices.slice(0, 1).map((device: { ulid: string; name: string; last_sync_at?: string }) => (
               <div key={device.ulid} className="flex items-start gap-4">
                 <div className="p-2 bg-primary/10 rounded-lg shrink-0">
                   <MonitorSmartphone className="w-4 h-4 text-primary" />

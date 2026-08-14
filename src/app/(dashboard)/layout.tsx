@@ -9,7 +9,7 @@ export default function DashboardLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { isLoading, isAuthenticated } = useAuth();
+  const { isLoading } = useAuth();
 
   // If we wanted to, we could enforce a redirect here if !isAuthenticated, 
   // but for the sake of the prototype and hydration, let's keep it simple.

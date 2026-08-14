@@ -24,7 +24,7 @@ export default function DevicesPage() {
     try {
       await fetchApi(`/tenant/devices/${ulid}/revoke`, { method: "POST" });
       mutate(); // Refresh the list
-    } catch (err) {
+    } catch {
       alert("Failed to revoke device.");
     }
   };
