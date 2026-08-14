@@ -48,7 +48,7 @@ export default function DashboardPage() {
             <p className="text-4xl font-bold text-foreground mb-1 tracking-tight">Pro</p>
             <p className="text-sm text-green-500 font-medium">Active • Renews Sept 14</p>
           </div>
-          <Link href="/subscription" className="mt-6 flex items-center text-sm font-medium text-primary hover:text-primary/80 transition-colors relative z-10">
+          <Link href="/billing" className="mt-6 flex items-center text-sm font-medium text-primary hover:text-primary/80 transition-colors relative z-10">
             Manage Subscription <ArrowRight className="w-4 h-4 ml-1" />
           </Link>
         </div>
@@ -156,7 +156,7 @@ export default function DashboardPage() {
               <Store className="w-6 h-6 text-primary" />
               <span className="text-sm font-medium">Add New Store</span>
             </Link>
-            <Link href="/subscription" className="flex flex-col items-center justify-center p-4 rounded-xl border border-card-border bg-card/50 hover:bg-card/80 transition-colors gap-2">
+            <Link href="/billing" className="flex flex-col items-center justify-center p-4 rounded-xl border border-card-border bg-card/50 hover:bg-card/80 transition-colors gap-2">
               <CreditCard className="w-6 h-6 text-primary" />
               <span className="text-sm font-medium">Upgrade Plan</span>
             </Link>
