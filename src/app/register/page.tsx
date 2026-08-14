@@ -49,6 +49,15 @@ export default function RegisterPage() {
     }
   };
 
+  // Prevent flash of register form and make transition to dashboard seamless
+  if (isAuthLoading || isAuthenticated) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-md p-8 glass rounded-2xl border border-card-border mt-12 mb-12">
