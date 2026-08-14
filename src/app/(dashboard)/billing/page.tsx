@@ -17,6 +17,7 @@ interface Invoice {
 export default function BillingPage() {
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
   const [checkoutPlan, setCheckoutPlan] = useState<string | null>(null);
+  const [terminalsCount, setTerminalsCount] = useState<number>(0);
 
   // Fetch subscription and invoices
   const { data: subRes, isLoading: isSubLoading } = useSWR("/billing/subscription", fetchApi);
@@ -45,7 +46,7 @@ export default function BillingPage() {
     try {
       const res = await fetchApi("/billing/checkout", { 
         method: "POST",
-        body: JSON.stringify({ plan })
+        body: JSON.stringify({ plan, terminals: terminalsCount })
       });
       if (res.data?.checkout_url) {
         window.location.href = res.data.checkout_url;
@@ -94,6 +95,11 @@ export default function BillingPage() {
                 <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-amber-500/10 text-amber-500">Free Trial</span>
               )}
             </h2>
+            {subscription.terminals > 0 && (
+              <p className="text-sm text-foreground mt-2">
+                Active POS Terminals: <span className="font-bold">{subscription.terminals}</span>
+              </p>
+            )}
             {isTrialing && (
               <p className="text-sm text-muted-foreground mt-1">
                 You have {daysLeft} days left in your free trial. Upgrade now to avoid interruption.
@@ -120,6 +126,30 @@ export default function BillingPage() {
       {/* Pricing Plans */}
       <div id="pricing-plans" className="pt-4">
         <h2 className="text-2xl font-bold text-foreground mb-6">Available Plans</h2>
+
+        {/* POS Terminals Add-on */}
+        <div className="glass rounded-2xl border border-card-border p-6 mb-6 flex items-center justify-between">
+          <div>
+            <h3 className="font-medium text-foreground text-lg">POS Terminals</h3>
+            <p className="text-sm text-muted-foreground mt-1">Add POS Terminals to your plan for R$49/month each. (0 required if you only sell online)</p>
+          </div>
+          <div className="flex items-center gap-4 bg-white/5 p-2 rounded-xl border border-card-border">
+            <button 
+              onClick={() => setTerminalsCount(Math.max(0, terminalsCount - 1))}
+              className="w-10 h-10 rounded-lg bg-card border border-card-border flex items-center justify-center hover:bg-white/10 transition-colors"
+            >
+              -
+            </button>
+            <span className="w-6 text-center font-bold text-lg">{terminalsCount}</span>
+            <button 
+              onClick={() => setTerminalsCount(terminalsCount + 1)}
+              className="w-10 h-10 rounded-lg bg-card border border-card-border flex items-center justify-center hover:bg-white/10 transition-colors"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
         <div className="grid md:grid-cols-2 gap-6">
           {/* Starter Plan */}
           <div className="glass rounded-2xl border border-card-border p-8 flex flex-col relative overflow-hidden">
