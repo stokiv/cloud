@@ -15,12 +15,11 @@ import {
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Subscription", href: "/subscription", icon: CreditCard },
   { name: "Stores", href: "/stores", icon: Store },
   { name: "Devices", href: "/devices", icon: MonitorSmartphone },
   { name: "Sync Status", href: "/sync", icon: RefreshCw },
   { name: "Team", href: "/team", icon: Users },
-  { name: "Billing", href: "/billing", icon: CreditCard }, // Or a different icon
+  { name: "Billing", href: "/billing", icon: CreditCard },
   { name: "Settings", href: "/settings", icon: Settings },
   { name: "Downloads", href: "/downloads", icon: DownloadCloud },
 ];
