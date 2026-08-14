@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
@@ -10,7 +11,9 @@ import {
   RefreshCw,
   Users,
   Settings,
-  DownloadCloud
+  DownloadCloud,
+  LogOut,
+  MoreVertical
 } from "lucide-react";
 
 const navigation = [
@@ -28,7 +31,19 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { isLocked, user, tenant } = useAuth();
+  const { isLocked, user, tenant, logout } = useAuth();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 z-50">
@@ -68,16 +83,48 @@ export default function Sidebar() {
             })}
           </nav>
         </div>
-        <div className="p-4 border-t border-card-border">
-          <div className="flex items-center px-3 py-2 rounded-lg bg-white/5">
-            <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium text-sm">
-              {user?.name?.[0]?.toUpperCase() || 'U'}
+        <div className="p-4 border-t border-card-border relative" ref={profileRef}>
+          {isProfileOpen && (
+            <div className="absolute bottom-full left-4 right-4 mb-2 bg-[#1a1a1a] border border-card-border rounded-xl shadow-xl overflow-hidden py-1 z-50 animate-in slide-in-from-bottom-2 fade-in duration-200">
+              <div className="px-4 py-2 border-b border-card-border/50 mb-1">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Account</p>
+              </div>
+              <Link 
+                href="/settings" 
+                className="flex items-center px-4 py-2 text-sm text-foreground hover:bg-white/5 transition-colors"
+                onClick={() => setIsProfileOpen(false)}
+              >
+                <Settings className="w-4 h-4 mr-2 text-muted-foreground" />
+                Settings
+              </Link>
+              <button 
+                onClick={() => {
+                  setIsProfileOpen(false);
+                  logout();
+                }}
+                className="w-full flex items-center px-4 py-2 text-sm text-red-400 hover:bg-red-400/10 transition-colors text-left"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign out
+              </button>
             </div>
-            <div className="ml-3 truncate">
-              <p className="text-sm font-medium text-foreground truncate">{user?.name || 'User'}</p>
-              <p className="text-xs text-muted-foreground truncate">{tenant?.name || 'Store'}</p>
+          )}
+          
+          <button 
+            onClick={() => setIsProfileOpen(!isProfileOpen)}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 transition-colors group"
+          >
+            <div className="flex items-center truncate">
+              <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium text-sm flex-shrink-0">
+                {user?.name?.[0]?.toUpperCase() || 'U'}
+              </div>
+              <div className="ml-3 truncate text-left">
+                <p className="text-sm font-medium text-foreground truncate">{user?.name || 'User'}</p>
+                <p className="text-xs text-muted-foreground truncate">{tenant?.name || 'Store'}</p>
+              </div>
             </div>
-          </div>
+            <MoreVertical className="w-4 h-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
+          </button>
         </div>
       </div>
     </div>
