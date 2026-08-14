@@ -27,7 +27,7 @@ export default function RegisterPage() {
 
       if (response.data && response.data.token) {
         // Log the user in and redirect to dashboard
-        login(response.data.token, response.data.user, "/sync");
+        login(response.data.token, response.data.user, response.data.tenant, "/sync");
       } else {
         setError("Invalid response from server.");
       }

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import TrialBanner from "@/components/TrialBanner";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function DashboardLayout({
@@ -11,7 +12,7 @@ export default function DashboardLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { isLoading, isAuthenticated } = useAuth();
+  const { isLoading, isAuthenticated, isLocked } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -21,6 +22,13 @@ export default function DashboardLayout({
     }
   }, [isLoading, isAuthenticated, router, pathname]);
   
+  useEffect(() => {
+    // If locked, force to /billing
+    if (!isLoading && isAuthenticated && isLocked && pathname !== '/billing') {
+      router.replace('/billing');
+    }
+  }, [isLoading, isAuthenticated, isLocked, pathname, router]);
+
   if (isLoading || !isAuthenticated) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -33,6 +41,7 @@ export default function DashboardLayout({
     <>
       <Sidebar />
       <div className="md:pl-64 flex flex-col min-h-screen">
+        <TrialBanner />
         <Header />
         <main className="flex-1">
           <div className="py-8 px-4 sm:px-6 lg:px-8">

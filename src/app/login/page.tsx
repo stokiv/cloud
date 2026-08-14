@@ -26,7 +26,7 @@ export default function LoginPage() {
       if (response.data && response.data.token) {
         const urlParams = new URLSearchParams(window.location.search);
         const callbackUrl = urlParams.get('callbackUrl');
-        login(response.data.token, response.data.user, callbackUrl || undefined);
+        login(response.data.token, response.data.user, response.data.tenant, callbackUrl || undefined);
       } else {
         setError("Invalid response from server.");
       }

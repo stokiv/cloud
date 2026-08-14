@@ -25,8 +25,11 @@ const navigation = [
   { name: "Downloads", href: "/downloads", icon: DownloadCloud },
 ];
 
+import { useAuth } from "@/hooks/useAuth";
+
 export default function Sidebar() {
   const pathname = usePathname();
+  const { isLocked, user, tenant } = useAuth();
 
   return (
     <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 z-50">
@@ -40,16 +43,18 @@ export default function Sidebar() {
           <nav className="flex-1 space-y-1">
             {navigation.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const isDisabled = isLocked && item.name !== 'Billing' && item.name !== 'Settings';
               return (
                 <Link
                   key={item.name}
-                  href={item.href}
+                  href={isDisabled ? '#' : item.href}
                   className={`
                     group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200
                     ${isActive 
                       ? 'bg-primary/10 text-primary' 
                       : 'text-muted-foreground hover:bg-white/5 hover:text-foreground'
                     }
+                    ${isDisabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}
                   `}
                 >
                   <item.icon
@@ -67,11 +72,11 @@ export default function Sidebar() {
         <div className="p-4 border-t border-card-border">
           <div className="flex items-center px-3 py-2 rounded-lg bg-white/5">
             <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium text-sm">
-              L
+              {user?.name?.[0]?.toUpperCase() || 'U'}
             </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-foreground">Lucas</p>
-              <p className="text-xs text-muted-foreground">Owner</p>
+            <div className="ml-3 truncate">
+              <p className="text-sm font-medium text-foreground truncate">{user?.name || 'User'}</p>
+              <p className="text-xs text-muted-foreground truncate">{tenant?.name || 'Store'}</p>
             </div>
           </div>
         </div>
