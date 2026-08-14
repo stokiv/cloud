@@ -4,30 +4,37 @@ import { CreditCard, ExternalLink, FileText, Download, Loader2 } from "lucide-re
 import Link from "next/link";
 import { useState } from "react";
 import { fetchApi } from "@/lib/api";
+import useSWR from "swr";
+
+interface Invoice {
+  id: string;
+  date: string;
+  amount: string;
+  status: string;
+  downloadUrl: string;
+}
 
 export default function BillingPage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingPortal, setIsLoadingPortal] = useState(false);
+
+  // Fetch invoices from the new endpoint
+  const { data: res, isLoading } = useSWR("/billing/invoices", fetchApi);
+  const invoices: Invoice[] = res?.data || [];
 
   const handlePortal = async () => {
-    setIsLoading(true);
+    setIsLoadingPortal(true);
     try {
       const res = await fetchApi("/billing/portal", { method: "POST" });
-      if (res.data?.url) {
-        window.location.href = res.data.url;
+      if (res.data?.portal_url) {
+        window.location.href = res.data.portal_url;
       }
     } catch (e) {
       console.error(e);
       alert("Billing portal is unavailable or you have not subscribed via Stripe yet.");
     } finally {
-      setIsLoading(false);
+      setIsLoadingPortal(false);
     }
   };
-
-  const invoices = [
-    { id: "INV-2023-08", date: "Aug 1, 2023", amount: "$29.00", status: "Paid", downloadUrl: "#" },
-    { id: "INV-2023-07", date: "Jul 1, 2023", amount: "$29.00", status: "Paid", downloadUrl: "#" },
-    { id: "INV-2023-06", date: "Jun 1, 2023", amount: "$29.00", status: "Paid", downloadUrl: "#" },
-  ];
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
@@ -39,10 +46,10 @@ export default function BillingPage() {
         
         <button 
           onClick={handlePortal}
-          disabled={isLoading}
+          disabled={isLoadingPortal}
           className="bg-card text-foreground border border-card-border px-4 py-2 rounded-lg font-medium hover:bg-white/5 transition-colors flex items-center gap-2 disabled:opacity-50"
         >
-          {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+          {isLoadingPortal ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
           Customer Portal
           <ExternalLink className="w-3 h-3 ml-1 opacity-50" />
         </button>
@@ -65,43 +72,72 @@ export default function BillingPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-card-border">
-              {invoices.map((invoice) => (
-                <tr key={invoice.id} className="hover:bg-white/5 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <FileText className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium text-foreground">{invoice.id}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-muted-foreground">
-                    {invoice.date}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-foreground font-medium">
-                    {invoice.amount}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-500/10 text-green-500">
-                      {invoice.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <Link 
-                      href={invoice.downloadUrl}
-                      className="inline-flex items-center p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                      title="Download PDF"
-                    >
-                      <Download className="w-4 h-4" />
-                    </Link>
+              {isLoading ? (
+                // Skeletons
+                Array.from({ length: 3 }).map((_, i) => (
+                  <tr key={i} className="hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="h-5 bg-white/5 rounded animate-pulse w-24"></div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-5 bg-white/5 rounded animate-pulse w-20"></div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-5 bg-white/5 rounded animate-pulse w-16"></div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-5 bg-white/5 rounded animate-pulse w-12"></div>
+                    </td>
+                    <td className="px-6 py-4 flex justify-end">
+                      <div className="h-8 bg-white/5 rounded animate-pulse w-8"></div>
+                    </td>
+                  </tr>
+                ))
+              ) : invoices.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                    No invoices found.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                invoices.map((invoice) => (
+                  <tr key={invoice.id} className="hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <FileText className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-medium text-foreground">{invoice.id}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
+                      {invoice.date}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-foreground font-medium">
+                      {invoice.amount}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-500/10 text-green-500">
+                        {invoice.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <Link 
+                        href={invoice.downloadUrl}
+                        className="inline-flex items-center p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                        title="Download PDF"
+                      >
+                        <Download className="w-4 h-4" />
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
         
         <div className="p-4 bg-white/5 text-center border-t border-card-border">
           <p className="text-sm text-muted-foreground">
-            Looking for older invoices? Visit the <Link href="#" className="text-primary hover:underline">Customer Portal</Link>.
+            Looking for older invoices? Visit the <button onClick={handlePortal} disabled={isLoadingPortal} className="text-primary hover:underline disabled:opacity-50">Customer Portal</button>.
           </p>
         </div>
       </div>

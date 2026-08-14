@@ -11,7 +11,7 @@ export default function DownloadsPage() {
       description: "Optimized for M1/M2/M3 chips. Requires macOS 13.0 or later.",
       version: "v1.4.2",
       icon: Apple,
-      link: "#",
+      link: "https://releases.stokiv.com/latest/mac-arm64.dmg",
     },
     {
       id: "windows",
@@ -19,7 +19,7 @@ export default function DownloadsPage() {
       description: "For Windows 10 and 11. x64 architecture.",
       version: "v1.4.2",
       icon: Monitor,
-      link: "#",
+      link: "https://releases.stokiv.com/latest/windows-x64.exe",
     },
     {
       id: "android",
@@ -27,7 +27,7 @@ export default function DownloadsPage() {
       description: "Direct APK download for POS terminals and Android devices.",
       version: "v1.4.2",
       icon: Smartphone,
-      link: "#",
+      link: "https://releases.stokiv.com/latest/android-arm64.apk",
     },
     {
       id: "kds",
@@ -35,7 +35,7 @@ export default function DownloadsPage() {
       description: "Specialized build for kitchen monitors and tablets.",
       version: "v1.2.0",
       icon: TerminalSquare,
-      link: "#",
+      link: "https://releases.stokiv.com/latest/kds-android.apk",
     },
   ];
 
