@@ -30,18 +30,39 @@ export default function SettingsPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
 
-  // Connected Apps State
+  // Connected Apps State - Mercado Pago & EFI
   const [mpAccessToken, setMpAccessToken] = useState("");
   const [mpPublicKey, setMpPublicKey] = useState("");
   const [efiClientId, setEfiClientId] = useState("");
   const [efiClientSecret, setEfiClientSecret] = useState("");
   const [efiPixKey, setEfiPixKey] = useState("");
 
+  // Connected Apps State - Stone
+  const [stoneClientId, setStoneClientId] = useState("");
+  const [stoneStoneCode, setStoneStoneCode] = useState("");
+  const [stoneSandbox, setStoneSandbox] = useState(false);
+
+  // Connected Apps State - Cielo
+  const [cieloMerchantId, setCieloMerchantId] = useState("");
+  const [cieloSandbox, setCieloSandbox] = useState(false);
+
+  // Connected Apps State - PagSeguro
+  const [pagseguroToken, setPagseguroToken] = useState("");
+  const [pagseguroSandbox, setPagseguroSandbox] = useState(false);
+
+  // Connected Apps State - Sicoob
+  const [sicoobClientId, setSicoobClientId] = useState("");
+  const [sicoobSandbox, setSicoobSandbox] = useState(false);
+
   // Populate state when settings load
   useEffect(() => {
     if (tenantSettings) {
       setDefaultCurrency(tenantSettings.default_currency || "BRL");
       setCommissionRate(tenantSettings.commission_rate?.toString() || "0");
+      setStoneSandbox(tenantSettings.stone_sandbox || false);
+      setCieloSandbox(tenantSettings.cielo_sandbox || false);
+      setPagseguroSandbox(tenantSettings.pagseguro_sandbox || false);
+      setSicoobSandbox(tenantSettings.sicoob_sandbox || false);
     }
   }, [tenantSettings]);
 
@@ -91,12 +112,26 @@ export default function SettingsPage() {
     
     // Only send fields that have been typed into (to avoid overwriting with empty strings if they just didn't want to change it)
     // The backend handles '******' masks and ignores them.
-    const body: Record<string, string> = {};
+    const body: Record<string, string | boolean> = {};
     if (mpAccessToken) body.mp_access_token = mpAccessToken;
     if (mpPublicKey) body.mp_public_key = mpPublicKey;
+    
     if (efiClientId) body.efi_client_id = efiClientId;
     if (efiClientSecret) body.efi_client_secret = efiClientSecret;
     if (efiPixKey) body.efi_pix_key = efiPixKey;
+    
+    if (stoneClientId) body.stone_client_id = stoneClientId;
+    if (stoneStoneCode) body.stone_stone_code = stoneStoneCode;
+    body.stone_sandbox = stoneSandbox;
+    
+    if (cieloMerchantId) body.cielo_merchant_id = cieloMerchantId;
+    body.cielo_sandbox = cieloSandbox;
+    
+    if (pagseguroToken) body.pagseguro_token = pagseguroToken;
+    body.pagseguro_sandbox = pagseguroSandbox;
+    
+    if (sicoobClientId) body.sicoob_client_id = sicoobClientId;
+    body.sicoob_sandbox = sicoobSandbox;
 
     try {
       await fetchApi("/tenant/settings", {
@@ -112,6 +147,11 @@ export default function SettingsPage() {
       setEfiClientId("");
       setEfiClientSecret("");
       setEfiPixKey("");
+      setStoneClientId("");
+      setStoneStoneCode("");
+      setCieloMerchantId("");
+      setPagseguroToken("");
+      setSicoobClientId("");
     } catch (e: unknown) {
       const error = e as Error;
       showToast(error.message || "Failed to save integrations.", "error");
@@ -140,7 +180,7 @@ export default function SettingsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Settings Navigation */}
-        <div className="md:col-span-1 space-y-1">
+        <div className="md:col-span-1 space-y-1 sticky top-8">
           <button 
             onClick={() => setActiveTab("personal")}
             className={`w-full text-left px-3 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition-colors ${
@@ -319,6 +359,7 @@ export default function SettingsPage() {
               ) : (
                 <div className="space-y-8">
                   
+                  {/* Mercado Pago */}
                   <div className="border border-card-border rounded-xl p-5 bg-black/20">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="h-10 w-10 bg-blue-500/20 text-blue-500 rounded-lg flex items-center justify-center font-bold">
@@ -356,6 +397,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
+                  {/* EFI (Gerencianet) */}
                   <div className="border border-card-border rounded-xl p-5 bg-black/20">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="h-10 w-10 bg-orange-500/20 text-orange-500 rounded-lg flex items-center justify-center font-bold">
@@ -403,7 +445,169 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  <div className="flex justify-end pt-4 border-t border-card-border">
+                  {/* Stone */}
+                  <div className="border border-card-border rounded-xl p-5 bg-black/20">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="h-10 w-10 bg-emerald-500/20 text-emerald-500 rounded-lg flex items-center justify-center font-bold">
+                        ST
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-foreground">Stone</h3>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className={`w-2 h-2 rounded-full ${tenantSettings?.has_stone_credentials ? 'bg-green-500' : 'bg-red-500'}`} />
+                          <p className="text-xs text-muted-foreground">{tenantSettings?.has_stone_credentials ? 'Connected' : 'Not Connected'}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <input 
+                          type="checkbox" 
+                          id="stoneSandbox" 
+                          checked={stoneSandbox} 
+                          onChange={(e) => setStoneSandbox(e.target.checked)}
+                          className="rounded border-card-border bg-background"
+                        />
+                        <label htmlFor="stoneSandbox" className="text-xs font-medium text-muted-foreground cursor-pointer">Use Sandbox Environment</label>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1">Client ID</label>
+                        <input 
+                          type="text"
+                          value={stoneClientId}
+                          onChange={(e) => setStoneClientId(e.target.value)}
+                          placeholder={tenantSettings?.has_stone_credentials ? "••••••••••••••••" : "Client ID..."}
+                          className="w-full bg-background border border-card-border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-primary text-foreground"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1">Stone Code</label>
+                        <input 
+                          type="text"
+                          value={stoneStoneCode}
+                          onChange={(e) => setStoneStoneCode(e.target.value)}
+                          placeholder={tenantSettings?.has_stone_credentials ? "••••••••" : "Stone Code..."}
+                          className="w-full bg-background border border-card-border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-primary text-foreground"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cielo */}
+                  <div className="border border-card-border rounded-xl p-5 bg-black/20">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="h-10 w-10 bg-cyan-500/20 text-cyan-500 rounded-lg flex items-center justify-center font-bold">
+                        CI
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-foreground">Cielo</h3>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className={`w-2 h-2 rounded-full ${tenantSettings?.has_cielo_credentials ? 'bg-green-500' : 'bg-red-500'}`} />
+                          <p className="text-xs text-muted-foreground">{tenantSettings?.has_cielo_credentials ? 'Connected' : 'Not Connected'}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <input 
+                          type="checkbox" 
+                          id="cieloSandbox" 
+                          checked={cieloSandbox} 
+                          onChange={(e) => setCieloSandbox(e.target.checked)}
+                          className="rounded border-card-border bg-background"
+                        />
+                        <label htmlFor="cieloSandbox" className="text-xs font-medium text-muted-foreground cursor-pointer">Use Sandbox Environment</label>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1">Merchant ID</label>
+                        <input 
+                          type="password"
+                          value={cieloMerchantId}
+                          onChange={(e) => setCieloMerchantId(e.target.value)}
+                          placeholder={tenantSettings?.has_cielo_credentials ? "••••••••••••••••••••••••" : "Merchant ID..."}
+                          className="w-full bg-background border border-card-border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-primary text-foreground"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* PagSeguro */}
+                  <div className="border border-card-border rounded-xl p-5 bg-black/20">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="h-10 w-10 bg-yellow-500/20 text-yellow-500 rounded-lg flex items-center justify-center font-bold">
+                        PS
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-foreground">PagSeguro</h3>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className={`w-2 h-2 rounded-full ${tenantSettings?.has_pagseguro_credentials ? 'bg-green-500' : 'bg-red-500'}`} />
+                          <p className="text-xs text-muted-foreground">{tenantSettings?.has_pagseguro_credentials ? 'Connected' : 'Not Connected'}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <input 
+                          type="checkbox" 
+                          id="pagseguroSandbox" 
+                          checked={pagseguroSandbox} 
+                          onChange={(e) => setPagseguroSandbox(e.target.checked)}
+                          className="rounded border-card-border bg-background"
+                        />
+                        <label htmlFor="pagseguroSandbox" className="text-xs font-medium text-muted-foreground cursor-pointer">Use Sandbox Environment</label>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1">Token</label>
+                        <input 
+                          type="password"
+                          value={pagseguroToken}
+                          onChange={(e) => setPagseguroToken(e.target.value)}
+                          placeholder={tenantSettings?.has_pagseguro_credentials ? "••••••••••••••••••••••••••••••••" : "PagSeguro Token..."}
+                          className="w-full bg-background border border-card-border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-primary text-foreground"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sicoob */}
+                  <div className="border border-card-border rounded-xl p-5 bg-black/20">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="h-10 w-10 bg-green-600/20 text-green-500 rounded-lg flex items-center justify-center font-bold">
+                        SC
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-foreground">Sicoob</h3>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className={`w-2 h-2 rounded-full ${tenantSettings?.has_sicoob_certificate ? 'bg-green-500' : 'bg-red-500'}`} />
+                          <p className="text-xs text-muted-foreground">{tenantSettings?.has_sicoob_certificate ? 'Connected' : 'Not Connected'}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <input 
+                          type="checkbox" 
+                          id="sicoobSandbox" 
+                          checked={sicoobSandbox} 
+                          onChange={(e) => setSicoobSandbox(e.target.checked)}
+                          className="rounded border-card-border bg-background"
+                        />
+                        <label htmlFor="sicoobSandbox" className="text-xs font-medium text-muted-foreground cursor-pointer">Use Sandbox Environment</label>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1">Client ID</label>
+                        <input 
+                          type="text"
+                          value={sicoobClientId}
+                          onChange={(e) => setSicoobClientId(e.target.value)}
+                          placeholder={tenantSettings?.has_sicoob_certificate ? "••••••••••••••••" : "Client ID..."}
+                          className="w-full bg-background border border-card-border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-primary text-foreground"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-4 border-t border-card-border sticky bottom-4 bg-background/80 backdrop-blur-md p-4 rounded-xl shadow-lg z-10">
                     <button 
                       onClick={handleSaveIntegrations}
                       disabled={isSaving}
