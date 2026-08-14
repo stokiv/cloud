@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,14 +11,19 @@ export default function DashboardLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { isLoading } = useAuth();
+  const { isLoading, isAuthenticated } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
 
-  // If we wanted to, we could enforce a redirect here if !isAuthenticated, 
-  // but for the sake of the prototype and hydration, let's keep it simple.
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+    }
+  }, [isLoading, isAuthenticated, router, pathname]);
   
-  if (isLoading) {
+  if (isLoading || !isAuthenticated) {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
+      <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );

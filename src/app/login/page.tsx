@@ -24,7 +24,9 @@ export default function LoginPage() {
       });
 
       if (response.data && response.data.token) {
-        login(response.data.token, response.data.user);
+        const urlParams = new URLSearchParams(window.location.search);
+        const callbackUrl = urlParams.get('callbackUrl');
+        login(response.data.token, response.data.user, callbackUrl || undefined);
       } else {
         setError("Invalid response from server.");
       }

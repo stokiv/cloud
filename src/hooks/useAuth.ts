@@ -33,12 +33,12 @@ export function useAuth() {
     setIsLoading(false);
   }, []);
 
-  const login = (newToken: string, newUser: User) => {
+  const login = (newToken: string, newUser: User, callbackUrl?: string) => {
     localStorage.setItem("auth_token", newToken);
     localStorage.setItem("auth_user", JSON.stringify(newUser));
     setToken(newToken);
     setUser(newUser);
-    router.push("/dashboard");
+    router.push(callbackUrl || "/dashboard");
   };
 
   const logout = async () => {
