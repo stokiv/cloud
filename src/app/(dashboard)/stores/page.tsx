@@ -1,6 +1,7 @@
 "use client";
 
 import { Store, Globe, ShoppingBag, Settings, MoreVertical, Loader2 } from "lucide-react";
+import Link from "next/link";
 import useSWR from "swr";
 import { fetchApi } from "@/lib/api";
 
@@ -21,10 +22,6 @@ const fetcher = (url: string) => fetchApi(url).then(res => res.data);
 export default function StoresPage() {
   const { data, error, isLoading } = useSWR("/stores", fetcher);
 
-  // Laravel pagination typically returns data in `data.data` or `data` directly depending on the resource
-  // StoreController index returns: successResponse(StoreResource::collection($stores))
-  // The ApiResponser returns { data: ... }
-  // StoreResource::collection usually returns { data: [...] } inside it, so it might be data.data
   const stores: StoreData[] = data?.data || data || [];
 
   return (
@@ -34,10 +31,10 @@ export default function StoresPage() {
           <h1 className="text-3xl font-bold tracking-tight text-foreground">My Stores</h1>
           <p className="mt-2 text-muted-foreground">Manage your store identities and online presence.</p>
         </div>
-        <button className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center gap-2">
+        <Link href="/stores/new" className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center gap-2">
           <Store className="w-4 h-4" />
           Add Store
-        </button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
@@ -60,7 +57,7 @@ export default function StoresPage() {
         )}
 
         {!isLoading && stores.map((store) => (
-          <div key={store.ulid} className="glass rounded-xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 group">
+          <Link href={`/stores/${store.ulid}`} key={store.ulid} className="glass rounded-xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 group hover:bg-white/5 transition-colors cursor-pointer">
             <div className="flex items-start gap-4">
               <div className={`h-12 w-12 rounded-lg flex items-center justify-center shrink-0 ${store.is_active ? 'bg-primary/10 text-primary' : 'bg-card-border text-muted-foreground'}`}>
                 <Store className="w-6 h-6" />
@@ -115,7 +112,7 @@ export default function StoresPage() {
                 </button>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>

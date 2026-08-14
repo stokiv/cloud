@@ -17,8 +17,8 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // POST /dashboard/login is the endpoint defined in DashboardAuthController
-      const response = await fetchApi("/dashboard/login", {
+      // POST /auth/login is the endpoint defined in DashboardAuthController
+      const response = await fetchApi("/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });

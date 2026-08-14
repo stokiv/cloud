@@ -44,7 +44,7 @@ export function useAuth() {
   const logout = async () => {
     if (token) {
       try {
-        await fetchApi("/dashboard/logout", { method: "POST" });
+        await fetchApi("/auth/logout", { method: "POST" });
       } catch (e) {
         console.error("Failed to cleanly logout from server", e);
       }
