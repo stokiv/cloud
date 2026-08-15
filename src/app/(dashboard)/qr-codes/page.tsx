@@ -13,7 +13,7 @@ interface QrCodeData {
   type: "store" | "table" | "product";
   target_id: string;
   is_active: boolean;
-  store: { name: string } | null;
+  store: { name: string; slug: string } | null;
   created_at: string;
 }
 
@@ -154,7 +154,7 @@ export default function QrCodesPage() {
                     <div className="bg-white p-2 rounded-lg inline-block shadow-sm">
                       <QRCodeSVG 
                         id={`qr-${qr.public_code}`}
-                        value={`https://${qr.store?.name ? qr.store.name.toLowerCase() : 'tester'}.stokiv.shop/t/${qr.public_code}`} 
+                        value={`https://${qr.store?.slug || 'tester'}.stokiv.shop/t/${qr.public_code}`} 
                         size={64} 
                       />
                     </div>

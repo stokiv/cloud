@@ -6,7 +6,7 @@ interface TableTentPrintProps {
     public_code: string;
     type: "store" | "table" | "product";
     target_id: string;
-    store: { name: string } | null;
+    store: { name: string; slug: string } | null;
   } | null;
 }
 
@@ -22,7 +22,7 @@ export function TableTentPrint({ qr }: TableTentPrintProps) {
     return "Bem-vindo!";
   };
 
-  const shopDomain = qr.store?.name ? qr.store.name.toLowerCase() : 'tester';
+  const shopDomain = qr.store?.slug || 'tester';
   const qrUrl = `https://${shopDomain}.stokiv.shop/t/${qr.public_code}`;
 
   return (
