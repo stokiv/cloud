@@ -32,7 +32,7 @@ export default function QrCodesPage() {
   const getQrUrl = (qr: QrCodeData) => {
     const shopDomain = qr.store?.slug || 'tester';
     const base = `https://${shopDomain}.stokiv.shop`;
-    if (qr.type === 'store') return base;
+    if (qr.type === 'store') return `${base}/s/${qr.public_code}`;
     if (qr.type === 'product') return `${base}/p/${qr.public_code}`;
     return `${base}/t/${qr.public_code}`;
   };
