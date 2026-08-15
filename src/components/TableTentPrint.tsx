@@ -6,6 +6,7 @@ interface TableTentPrintProps {
     public_code: string;
     type: "store" | "table" | "product";
     target_id: string;
+    branding?: { color?: string; logo_url?: string };
     store: { name: string; slug: string } | null;
   } | null;
 }
@@ -39,11 +40,13 @@ export function TableTentPrint({ qr }: TableTentPrintProps) {
           {getTargetName()}
         </div>
 
-        <div className="bg-white p-6 rounded-3xl shadow-sm mb-12">
+        <div className="bg-white p-4 rounded-3xl inline-block mt-8 mb-4">
           <QRCodeSVG 
-            value={qrUrl}
+            id={`qr-print-${qr.public_code}`}
+            value={qrUrl} 
             size={400} 
-            level="H"
+            fgColor={qr.branding?.color || "#000000"}
+            imageSettings={qr.branding?.logo_url ? { src: qr.branding.logo_url, height: 80, width: 80, excavate: true } : undefined}
           />
         </div>
 

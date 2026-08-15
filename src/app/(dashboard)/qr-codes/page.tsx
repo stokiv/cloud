@@ -13,6 +13,11 @@ interface QrCodeData {
   type: "store" | "table" | "product";
   target_id: string;
   is_active: boolean;
+  scan_count: number;
+  branding?: {
+    color?: string;
+    logo_url?: string;
+  };
   store: { name: string; slug: string } | null;
   created_at: string;
 }
@@ -37,6 +42,8 @@ export default function QrCodesPage() {
   const [type, setType] = useState<"store" | "table" | "product">("table");
   const [storeId, setStoreId] = useState("");
   const [targetId, setTargetId] = useState("");
+  const [qrColor, setQrColor] = useState("#000000");
+  const [logoUrl, setLogoUrl] = useState("");
   
   // Data for selects
   const { data: storesData } = useSWR(modalOpen ? "/stores" : null, fetcher);
@@ -57,11 +64,21 @@ export default function QrCodesPage() {
     try {
       await fetchApi("/qr-codes", {
         method: "POST",
-        body: JSON.stringify({ type, store_id: storeId, target_id: targetId }),
+        body: JSON.stringify({ 
+          type, 
+          store_id: storeId, 
+          target_id: targetId,
+          branding: {
+            color: qrColor,
+            logo_url: logoUrl || undefined
+          }
+        }),
       });
       await mutate();
       setModalOpen(false);
       setTargetId("");
+      setLogoUrl("");
+      setQrColor("#000000");
     } catch (err) {
       console.error(err);
       alert("Failed to generate QR code");
@@ -152,6 +169,7 @@ export default function QrCodesPage() {
                 <th className="px-6 py-4 font-medium">Code</th>
                 <th className="px-6 py-4 font-medium">Type</th>
                 <th className="px-6 py-4 font-medium">Store</th>
+                <th className="px-6 py-4 font-medium">Scans</th>
                 <th className="px-6 py-4 font-medium text-right">Actions</th>
               </tr>
             </thead>
@@ -164,6 +182,8 @@ export default function QrCodesPage() {
                         id={`qr-${qr.public_code}`}
                         value={getQrUrl(qr)} 
                         size={64} 
+                        fgColor={qr.branding?.color || "#000000"}
+                        imageSettings={qr.branding?.logo_url ? { src: qr.branding.logo_url, height: 16, width: 16, excavate: true } : undefined}
                       />
                     </div>
                   </td>
@@ -180,6 +200,9 @@ export default function QrCodesPage() {
                   </td>
                   <td className="px-6 py-4 text-muted-foreground">
                     {qr.store?.name || '-'}
+                  </td>
+                  <td className="px-6 py-4 font-medium">
+                    <span className="bg-primary/10 text-primary px-2 py-1 rounded-md">{qr.scan_count || 0}</span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
@@ -278,7 +301,35 @@ export default function QrCodesPage() {
                  return null;
               })()}
 
-              <div className="flex items-center gap-3 pt-4">
+              <div className="pt-4 border-t border-card-border space-y-4">
+                <h3 className="text-sm font-medium text-foreground">Advanced Branding (Optional)</h3>
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Color</label>
+                    <div className="flex items-center gap-3">
+                      <input 
+                        type="color" 
+                        value={qrColor} 
+                        onChange={(e) => setQrColor(e.target.value)}
+                        className="h-10 w-10 rounded cursor-pointer border-0 p-0"
+                      />
+                      <span className="text-sm text-muted-foreground uppercase font-mono">{qrColor}</span>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Center Logo URL</label>
+                    <input 
+                      type="url"
+                      placeholder="https://.../logo.png"
+                      value={logoUrl}
+                      onChange={(e) => setLogoUrl(e.target.value)}
+                      className="w-full bg-[#1a1a1a] border border-card-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 pt-4 border-t border-card-border mt-4">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
