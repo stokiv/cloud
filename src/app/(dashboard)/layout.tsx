@@ -39,10 +39,14 @@ export default function DashboardLayout({
 
   return (
     <>
-      <Sidebar />
+      <div className="print:hidden">
+        <Sidebar />
+      </div>
       <div className="md:pl-64 flex flex-col min-h-screen">
-        <TrialBanner />
-        <Header />
+        <div className="print:hidden">
+          <TrialBanner />
+          <Header />
+        </div>
         <main className="flex-1">
           <div className="py-8 px-4 sm:px-6 lg:px-8">
             {children}

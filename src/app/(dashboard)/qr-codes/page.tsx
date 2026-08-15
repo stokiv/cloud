@@ -1,10 +1,11 @@
 "use client";
 
-import { QrCode, Plus, Trash2, Loader2, Store, Utensils, Package, Download } from "lucide-react";
+import { QrCode, Plus, Trash2, Loader2, Store, Utensils, Package, Download, Printer } from "lucide-react";
 import useSWR from "swr";
 import { fetchApi } from "@/lib/api";
 import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
+import { TableTentPrint } from "@/components/TableTentPrint";
 
 interface QrCodeData {
   ulid: string;
@@ -21,6 +22,7 @@ const fetcher = (url: string) => fetchApi(url).then(res => res.data);
 export default function QrCodesPage() {
   const { data, error, isLoading, mutate } = useSWR("/qr-codes", fetcher);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [printingQr, setPrintingQr] = useState<QrCodeData | null>(null);
 
   // Form State
   const [modalOpen, setModalOpen] = useState(false);
@@ -90,9 +92,17 @@ export default function QrCodesPage() {
     img.src = "data:image/svg+xml;base64," + btoa(svgData);
   };
 
+  const handlePrint = (qr: QrCodeData) => {
+    setPrintingQr(qr);
+    setTimeout(() => {
+      window.print();
+      setPrintingQr(null);
+    }, 300);
+  };
+
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-12">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center print:hidden">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">QR Codes</h1>
           <p className="mt-2 text-muted-foreground">Manage and generate QR codes for tables, products, and storefronts.</p>
@@ -106,7 +116,7 @@ export default function QrCodesPage() {
         </button>
       </div>
 
-      <div className="glass rounded-xl overflow-hidden">
+      <div className="glass rounded-xl overflow-hidden print:hidden">
         {isLoading && (
           <div className="p-12 flex items-center justify-center">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -171,6 +181,13 @@ export default function QrCodesPage() {
                         title="Download PNG"
                       >
                         <Download className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => handlePrint(qr)}
+                        className="p-2 text-muted-foreground hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
+                        title="Print Table Tent"
+                      >
+                        <Printer className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => handleDelete(qr.ulid)}
@@ -273,6 +290,8 @@ export default function QrCodesPage() {
           </div>
         </div>
       )}
+
+      <TableTentPrint qr={printingQr} />
     </div>
   );
 }
