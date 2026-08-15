@@ -50,9 +50,18 @@ export default function QrCodesPage() {
   const { data: tablesData } = useSWR(modalOpen && type === "table" ? "/tables" : null, fetcher);
   const { data: productsData } = useSWR(modalOpen && type === "product" ? "/products" : null, fetcher);
 
-  const stores = storesData?.data || storesData || [];
-  const tables = tablesData?.data || tablesData || [];
-  const products = productsData?.data || productsData || [];
+  
+  const getArray = (data: any) => {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    if (data.data && Array.isArray(data.data)) return data.data;
+    if (data.data?.data && Array.isArray(data.data.data)) return data.data.data;
+    return [];
+  };
+
+  const stores = getArray(storesData);
+  const tables = getArray(tablesData);
+  const products = getArray(productsData);
 
   const qrCodes: QrCodeData[] = data?.data || data || [];
 
