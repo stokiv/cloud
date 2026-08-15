@@ -23,7 +23,10 @@ export function TableTentPrint({ qr }: TableTentPrintProps) {
   };
 
   const shopDomain = qr.store?.slug || 'tester';
-  const qrUrl = `https://${shopDomain}.stokiv.shop/t/${qr.public_code}`;
+  const base = `https://${shopDomain}.stokiv.shop`;
+  let qrUrl = `${base}/t/${qr.public_code}`;
+  if (qr.type === 'store') qrUrl = base;
+  if (qr.type === 'product') qrUrl = `${base}/p/${qr.public_code}`;
 
   return (
     <div className="hidden print:flex flex-col items-center justify-center w-screen h-screen bg-white text-black p-12 absolute inset-0 z-[9999]">

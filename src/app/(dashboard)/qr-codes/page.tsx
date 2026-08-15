@@ -24,6 +24,14 @@ export default function QrCodesPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [printingQr, setPrintingQr] = useState<QrCodeData | null>(null);
 
+  const getQrUrl = (qr: QrCodeData) => {
+    const shopDomain = qr.store?.slug || 'tester';
+    const base = `https://${shopDomain}.stokiv.shop`;
+    if (qr.type === 'store') return base;
+    if (qr.type === 'product') return `${base}/p/${qr.public_code}`;
+    return `${base}/t/${qr.public_code}`;
+  };
+
   // Form State
   const [modalOpen, setModalOpen] = useState(false);
   const [type, setType] = useState<"store" | "table" | "product">("table");
@@ -33,7 +41,7 @@ export default function QrCodesPage() {
   // Data for selects
   const { data: storesData } = useSWR(modalOpen ? "/stores" : null, fetcher);
   const { data: tablesData } = useSWR(modalOpen && type === "table" ? "/tables" : null, fetcher);
-  const { data: productsData } = useSWR(modalOpen && type === "product" ? "/catalog/products" : null, fetcher);
+  const { data: productsData } = useSWR(modalOpen && type === "product" ? "/products" : null, fetcher);
 
   const stores = storesData?.data || storesData || [];
   const tables = tablesData?.data || tablesData || [];
@@ -154,7 +162,7 @@ export default function QrCodesPage() {
                     <div className="bg-white p-2 rounded-lg inline-block shadow-sm">
                       <QRCodeSVG 
                         id={`qr-${qr.public_code}`}
-                        value={`https://${qr.store?.slug || 'tester'}.stokiv.shop/t/${qr.public_code}`} 
+                        value={getQrUrl(qr)} 
                         size={64} 
                       />
                     </div>
