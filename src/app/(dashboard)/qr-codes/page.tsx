@@ -19,7 +19,7 @@ interface QrCodeData {
 const fetcher = (url: string) => fetchApi(url).then(res => res.data);
 
 export default function QrCodesPage() {
-  const { data, error, isLoading, mutate } = useSWR("/tenant/settings/qr-codes", fetcher);
+  const { data, error, isLoading, mutate } = useSWR("/qr-codes", fetcher);
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Form State
@@ -29,8 +29,8 @@ export default function QrCodesPage() {
   const [targetId, setTargetId] = useState("");
   
   // Data for selects
-  const { data: storesData } = useSWR(modalOpen ? "/tenant/settings/stores" : null, fetcher);
-  const { data: tablesData } = useSWR(modalOpen && type === "table" ? "/tenant/settings/tables" : null, fetcher);
+  const { data: storesData } = useSWR(modalOpen ? "/stores" : null, fetcher);
+  const { data: tablesData } = useSWR(modalOpen && type === "table" ? "/tables" : null, fetcher);
   const { data: productsData } = useSWR(modalOpen && type === "product" ? "/catalog/products" : null, fetcher);
 
   const stores = storesData?.data || storesData || [];
@@ -45,7 +45,7 @@ export default function QrCodesPage() {
 
     setIsGenerating(true);
     try {
-      await fetchApi("/tenant/settings/qr-codes", {
+      await fetchApi("/qr-codes", {
         method: "POST",
         body: JSON.stringify({ type, store_id: storeId, target_id: targetId }),
       });
@@ -63,7 +63,7 @@ export default function QrCodesPage() {
   const handleDelete = async (ulid: string) => {
     if (!confirm("Are you sure you want to delete this QR Code?")) return;
     try {
-      await fetchApi(`/tenant/settings/qr-codes/${ulid}`, { method: "DELETE" });
+      await fetchApi(`/qr-codes/${ulid}`, { method: "DELETE" });
       mutate();
     } catch {
       alert("Failed to delete QR Code");
