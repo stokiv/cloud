@@ -13,12 +13,14 @@ import {
   Settings,
   DownloadCloud,
   LogOut,
-  MoreVertical
+  MoreVertical,
+  QrCode
 } from "lucide-react";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Stores", href: "/stores", icon: Store },
+  { name: "QR Codes", href: "/qr-codes", icon: QrCode },
   { name: "Devices", href: "/devices", icon: MonitorSmartphone },
   { name: "Sync Status", href: "/sync", icon: RefreshCw },
   { name: "Team", href: "/team", icon: Users },
