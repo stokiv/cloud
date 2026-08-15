@@ -51,6 +51,7 @@ export default function QrCodesPage() {
   const { data: productsData } = useSWR(modalOpen && type === "product" ? "/products" : null, fetcher);
 
   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getArray = (data: any) => {
     if (!data) return [];
     if (Array.isArray(data)) return data;
