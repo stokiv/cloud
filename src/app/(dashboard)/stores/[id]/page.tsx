@@ -38,6 +38,10 @@ export default function StoreEditPage() {
     min_order_cents: 0,
     delivery_time_minutes: 0,
     primary_color: "",
+    description: "",
+    logo_url: "",
+    cover_url: "",
+    shop_published: false,
   });
 
   useEffect(() => {
@@ -58,6 +62,10 @@ export default function StoreEditPage() {
         min_order_cents: settings.min_order_cents || 0,
         delivery_time_minutes: settings.delivery_time_minutes || 0,
         primary_color: settings.primary_color || "",
+        description: settings.description || "",
+        logo_url: settings.logo_url || "",
+        cover_url: settings.cover_url || "",
+        shop_published: settings.shop_published || false,
       });
     }
   }, [store, settings]);
@@ -101,6 +109,10 @@ export default function StoreEditPage() {
           min_order_cents: parseInt(formData.min_order_cents.toString()),
           delivery_time_minutes: parseInt(formData.delivery_time_minutes.toString()),
           primary_color: formData.primary_color,
+          description: formData.description,
+          logo_url: formData.logo_url,
+          cover_url: formData.cover_url,
+          shop_published: formData.shop_published,
         }),
       });
 
@@ -245,6 +257,42 @@ export default function StoreEditPage() {
                 />
               </div>
             </div>
+
+            <div className="space-y-2 pt-4 border-t border-card-border">
+              <label className="text-sm font-medium text-muted-foreground">Store Description (Public)</label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                className="w-full bg-black/20 border border-card-border rounded-lg px-4 py-2.5 text-foreground focus:outline-none focus:border-primary transition-colors min-h-[100px]"
+                placeholder="A brief description of your store for the marketplace..."
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">Logo URL</label>
+                <input
+                  type="url"
+                  name="logo_url"
+                  value={formData.logo_url}
+                  onChange={handleInputChange}
+                  className="w-full bg-black/20 border border-card-border rounded-lg px-4 py-2.5 text-foreground focus:outline-none focus:border-primary transition-colors"
+                  placeholder="https://..."
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">Cover Image URL</label>
+                <input
+                  type="url"
+                  name="cover_url"
+                  value={formData.cover_url}
+                  onChange={handleInputChange}
+                  className="w-full bg-black/20 border border-card-border rounded-lg px-4 py-2.5 text-foreground focus:outline-none focus:border-primary transition-colors"
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
           </div>
         )}
 
@@ -308,6 +356,17 @@ export default function StoreEditPage() {
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" name="shop_enabled" checked={formData.shop_enabled} onChange={handleInputChange} className="sr-only peer" />
+                  <div className="w-11 h-6 bg-card-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+              </div>
+
+              <div className="border border-card-border rounded-xl p-4 flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium text-foreground">Shop Published</h3>
+                  <p className="text-xs text-muted-foreground mt-1">List on Stokiv Marketplace</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" name="shop_published" checked={formData.shop_published} onChange={handleInputChange} className="sr-only peer" />
                   <div className="w-11 h-6 bg-card-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
               </div>
